@@ -33,7 +33,7 @@ D) On peut garder un footer à la fin pour fournir des tests avec
 def cleanup(code: list):
     # La première ligne reste
     header = code[0]
-    
+
     output = [
         header,
     ]
@@ -82,28 +82,43 @@ def cleanup(code: list):
             diff = idx - prev_num
             if diff > 1:
                 keep_only_with_space.append("")
-        
+
         keep_only_with_space.append(line)
 
 
     output.extend(keep_only_with_space)
 
     output.extend(footer)
-    
+
     if output[-1] != '':
         output.append('')
 
     # Vérifie que toutes les lignes terminent déjà par "\n"
     for i in range(len(output)):
-        
+
         if len(output[i]) == 0 or output[i][-1] != '\n':
             output[i] += "\n"
 
     return output
 
-for i in glob('./solutions/*.ipynb'):
-    output_path = re.sub(r'^./solutions/', './exercices/', i)
 
+
+for i in glob('./solutions/*.ipynb'):
+    output_path_exercices = re.sub(r'^./solutions/', './exercices/', i)
+
+    # Fix pour https://stackoverflow.com/a/79684162
+    with open(i) as f:
+        content = json.load(f)
+
+    try:
+        del content['metadata']['widgets']
+    except KeyError:
+        pass
+
+    with open(i, 'w') as f:
+        json.dump(content, f)
+
+    # Solution -> Exercice
     with open(i) as f:
         print("===", i, "===")
         content = json.load(f)
@@ -121,7 +136,7 @@ for i in glob('./solutions/*.ipynb'):
                 content['cells'][i]['execution_count'] = None
                 content['cells'][i]['outputs'] = []
 
-    with open(output_path, 'w') as f:
+    with open(output_path_exercices, 'w') as f:
         json.dump(content, f)
 
 exemple1 = """
