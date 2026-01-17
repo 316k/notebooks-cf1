@@ -13,6 +13,7 @@ Convention:
 
 A) La première ligne commence par:
     #@title Exercice.+
+    #@title Question.+
 
 B) Toutes les lignes sont conservées jusqu'à la première ligne qui contient seulement des ######:
 
@@ -126,15 +127,27 @@ for i in glob('./solutions/*.ipynb'):
 
         for i, cell in enumerate(cells):
 
-            if cell['cell_type'] != "code":
-                continue
+            if cell['cell_type'] == "code":
 
-            if len(cell['source']) and cell['source'][0].lower().startswith('#@title exercice'):
-                src = cell['source']
-                src = cleanup(src)
-                content['cells'][i]['source'] = src
-                content['cells'][i]['execution_count'] = None
-                content['cells'][i]['outputs'] = []
+                if not len(cell['source']):
+                    continue
+
+                title = cell['source'][0].lower()
+
+                if title.startswith('#@title exercice') or title.startswith('#@title question'):
+                    src = cell['source']
+                    src = cleanup(src)
+                    content['cells'][i]['source'] = src
+                    content['cells'][i]['execution_count'] = None
+                    content['cells'][i]['outputs'] = []
+            elif cell['cell_type'] == "markdown":
+                if not len(cell['source']):
+                    continue
+
+                first_line = cell['source'][0].lower().strip()
+
+                if first_line in ['**réponses**', '**reponses**', '**réponse**', '**reponse**', '**solution**', '**solutions**']:
+                    content['cells'][i]['source'] = ['**VOTRE RÉPONSE ICI**\n']
 
     with open(output_path_exercices, 'w') as f:
         json.dump(content, f)
